@@ -1,0 +1,10 @@
+D:\others\Laharika_File_Management\bin\Debug\Laharika_File_Management.exe.config
+D:\others\Laharika_File_Management\bin\Debug\Laharika_File_Management.exe
+D:\others\Laharika_File_Management\bin\Debug\Laharika_File_Management.pdb
+D:\others\Laharika_File_Management\obj\Debug\Laharika_File_Management.csproj.AssemblyReference.cache
+D:\others\Laharika_File_Management\obj\Debug\Laharika_File_Management.Form1.resources
+D:\others\Laharika_File_Management\obj\Debug\Laharika_File_Management.Properties.Resources.resources
+D:\others\Laharika_File_Management\obj\Debug\Laharika_File_Management.csproj.GenerateResource.cache
+D:\others\Laharika_File_Management\obj\Debug\Laharika_File_Management.csproj.CoreCompileInputs.cache
+D:\others\Laharika_File_Management\obj\Debug\Laharika_File_Management.exe
+D:\others\Laharika_File_Management\obj\Debug\Laharika_File_Management.pdb
