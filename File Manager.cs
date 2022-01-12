@@ -18,6 +18,7 @@ namespace Laharika_File_Management
         private static string orderid;
         private static string OrderDetailsPath, Filter, PopUpNotification, AllowAppClosing,
                               UpdateMsge, copyOnEnter, OrderFilesPath, TodayFolderPathLocal;
+        private static bool Iscommentable = true;
         public static DataTable gridviewdata = new DataTable();
         public Form1()
         {
@@ -35,7 +36,6 @@ namespace Laharika_File_Management
             copyOnEnter = ConfigurationManager.AppSettings["CopyOnEnter"].ToString();
             OrderFilesPath = ConfigurationManager.AppSettings["OrderFilesPath"].ToString();
             TodayFolderPathLocal = ConfigurationManager.AppSettings["TodayFolderPathLocal"].ToString();
-            
         }
 
         private void CustomMsgBox(string msg)
@@ -60,8 +60,7 @@ namespace Laharika_File_Management
         {
             fileSystemWatcher1.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             fileSystemWatcher1.Path = OrderDetailsPath;
-
-         
+           
             gridviewdata.Columns.Add("Order ID");
             gridviewdata.Columns.Add("Folder Name");
             gridviewdata.Columns.Add("Files Count");
@@ -74,7 +73,7 @@ namespace Laharika_File_Management
         private void ReadOrders()
         {
             gridviewdata.Clear();
-            string[] files = Directory.GetFiles(OrderDetailsPath, $"*{Filter}.txt", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(OrderDetailsPath, $"*{Filter}", SearchOption.AllDirectories);
               
             string order, folder="", count="", status="", comments="";
 
@@ -173,6 +172,14 @@ namespace Laharika_File_Management
         {
             DataGridViewRow row = dataGridView1.SelectedRows[0];
             orderid = row.Cells[0].Value.ToString();
+            if(row.Cells[4].Value.ToString().Length > 2)
+            {
+                Iscommentable = false;
+            }
+            else
+            {
+                Iscommentable = true;
+            }
         }
 
         private void dataGridView1_KeyPress(object sender, KeyEventArgs e)
@@ -224,10 +231,16 @@ namespace Laharika_File_Management
 
         private void UpdateComment_Click(object sender, EventArgs e)
         {
+            if(!Iscommentable)
+            {
+                MessageBox.Show("Comments can't be modified");
+                return;
+            }
            string path = Directory.GetFiles(OrderDetailsPath, $"{orderid}*")[0];
             DialogResult msg = MessageBox.Show($"add comments to order : {orderid}","Message", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
             if (msg == DialogResult.Yes)
                 File.AppendAllText(path, $"Comments : {TextBox_Comments.Text}\n");
+            ReadOrders();
             TextBox_Comments.Text = "";
         }
 
