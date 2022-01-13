@@ -66,8 +66,14 @@ namespace Laharika_File_Management
             gridviewdata.Columns.Add("Files Count");
             gridviewdata.Columns.Add("Status");
             gridviewdata.Columns.Add("Comments");
-            ReadOrders();
-
+            try
+            {
+                ReadOrders();
+            }
+            catch(Exception ex)
+            {
+                Log("Error in ReadOrders() method " +ex.Message);
+            }
         }
 
         private void ReadOrders()
@@ -95,7 +101,10 @@ namespace Laharika_File_Management
                
                 gridviewdata.Rows.Add(order,folder,count, status, comments);
             }
-            orderid = gridviewdata.Rows[0][0].ToString();
+            if (gridviewdata.Rows.Count > 0)
+            {
+                orderid = gridviewdata.Rows[0][0].ToString();
+            }
             dataGridView1.DataSource = gridviewdata;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.Update();
@@ -259,6 +268,13 @@ namespace Laharika_File_Management
             {
                 e.Cancel = true;
             }
+        }
+
+        private void Log(string Message)
+        {
+            string path = ConfigurationManager.AppSettings["LogPath"];
+            File.AppendAllText(path, DateTime.Now + " : " + Message + "\n");
+                
         }
     }
 }
