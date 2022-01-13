@@ -15,27 +15,34 @@ namespace Laharika_File_Management
 {
     public partial class Form1 : Form
     {
-        private static string orderid;
-        private static string OrderDetailsPath, Filter, PopUpNotification, AllowAppClosing,
-                              UpdateMsge, copyOnEnter, OrderFilesPath, TodayFolderPathLocal;
-        private static bool Iscommentable = true;
+        private static string orderid,SearchType;
+        private static string OrderDetailsPath, Filter, AllowAppClosing, PrintingMsg, 
+                                PrintCompletedMsg, copyOnEnter, OrderFilesPath, TodayFolderPathLocal;
+        private static bool Iscommentable = true, PopUpNotification;
         public static DataTable gridviewdata = new DataTable();
         public Form1()
         {
             ReadConfigurations();
+          //  InitializeWatcher();
             InitializeComponent();
+          
         }
+
 
         private void ReadConfigurations()
         {
-            OrderDetailsPath = ConfigurationManager.AppSettings["OrderDetailsPath"].ToString();
+            OrderDetailsPath = ConfigurationManager.AppSettings["OrderDetailsPath"];
+            PopUpNotification = Convert.ToBoolean(ConfigurationManager.AppSettings["PopUpNotification"]);
             Filter = ConfigurationManager.AppSettings["Filter"].ToString();
-            PopUpNotification = ConfigurationManager.AppSettings["PopUpNotification"].ToString();
-            AllowAppClosing = ConfigurationManager.AppSettings["AllowAppClosing"].ToString();
-            UpdateMsge = ConfigurationManager.AppSettings["UpdateMsge"].ToString();
+            AllowAppClosing = ConfigurationManager.AppSettings["AllowAppClosing"];
+            PrintingMsg = ConfigurationManager.AppSettings["PrintingMsg"];
+            PrintCompletedMsg = ConfigurationManager.AppSettings["PrintCompletedMsg"];
             copyOnEnter = ConfigurationManager.AppSettings["CopyOnEnter"].ToString();
-            OrderFilesPath = ConfigurationManager.AppSettings["OrderFilesPath"].ToString();
-            TodayFolderPathLocal = ConfigurationManager.AppSettings["TodayFolderPathLocal"].ToString();
+            OrderFilesPath = ConfigurationManager.AppSettings["OrderFilesPath"];
+            TodayFolderPathLocal = ConfigurationManager.AppSettings["TodayFolderPathLocal"];
+            SearchType = ConfigurationManager.AppSettings["SearchType"];
+           // Control.CheckForIllegalCrossThreadCalls = false;
+            ///fileSystemWatcher1.Path = OrderDetailsPath;
         }
         private void CustomMsgBox(string msg)
         {
@@ -57,7 +64,7 @@ namespace Laharika_File_Management
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            fileSystemWatcher1.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            fileSystemWatcher1.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             fileSystemWatcher1.Path = OrderDetailsPath;
            
             gridviewdata.Columns.Add("Order ID");
@@ -77,27 +84,30 @@ namespace Laharika_File_Management
         private void ReadOrders()
         {
             gridviewdata.Clear();
-            string[] files = Directory.GetFiles(OrderDetailsPath, $"*{Filter}", SearchOption.AllDirectories);
+            string[] files = Directory.GetFiles(OrderDetailsPath, $"{SearchType}*", SearchOption.AllDirectories);
               
             string order, folder="", count="", status="", comments="";
 
-            foreach(var file in files)
+            foreach (var file in files)
             {
-                comments = "";
-                order = Path.GetFileName(file).Split('$')[0];
-                status = Path.GetFileNameWithoutExtension(file).Split('$')[1].Substring(1);
-                string[] data = File.ReadAllLines(file);
-                if (data.Length >= 3)
+                if (Path.GetFileNameWithoutExtension(file).Contains(Filter) || Path.GetFileNameWithoutExtension(file).Contains(PrintingMsg))
                 {
-                    folder = data[0].Split(':')[1];
-                    count = data[1].Split(':')[1];
-                    if (data.Length > 3)
+                    comments = "";
+                    order = Path.GetFileName(file).Split('$')[0];
+                    status = Path.GetFileNameWithoutExtension(file).Split('$')[1].Substring(1);
+                    string[] data = File.ReadAllLines(file);
+                    if (data.Length >= 3)
                     {
-                        comments = data[3].Split(':')[1];
+                        folder = data[0].Split(':')[1];
+                        count = data[1].Split(':')[1];
+                        if (data.Length > 3)
+                        {
+                            comments = data[3].Split(':')[1];
+                        }
                     }
+
+                    gridviewdata.Rows.Add(order, folder, count, status, comments);
                 }
-               
-                gridviewdata.Rows.Add(order,folder,count, status, comments);
             }
             if (gridviewdata.Rows.Count > 0)
             {
@@ -114,7 +124,6 @@ namespace Laharika_File_Management
 
         }
 
-
         private void fileSystemWatcher1_Created(object sender, FileSystemEventArgs e)
         {
             int a, b;
@@ -128,19 +137,22 @@ namespace Laharika_File_Management
                     if (a == b)
                     { break;}
                 }
-                catch {  }
+                catch { }
             }
 
-            if(PopUpNotification =="False")
+            if(!PopUpNotification)
             {
                 return;
             }
-            if (Path.GetFileNameWithoutExtension(e.Name).Contains(Filter))
+            if (Path.GetFileNameWithoutExtension(e.Name).StartsWith(SearchType))
             {
-                string order = Path.GetFileNameWithoutExtension(e.Name).Split('$')[0];
-                order = "Order No:- " + order;
-                ReadOrders();
-                CustomMsgBox(order);
+                if (Path.GetFileNameWithoutExtension(e.Name).Contains(Filter))
+                {
+                    string order = Path.GetFileNameWithoutExtension(e.Name).Split('$')[0];
+                    order = "Order No:- " + order;
+                    ReadOrders();
+                    CustomMsgBox(order);
+                }
             }
         }
 
@@ -152,11 +164,12 @@ namespace Laharika_File_Management
              foreach(var row in rows)
             {
                 string order = gridviewdata.Rows[e.Row.Index]["Order ID"].ToString();
-               var msg  =  MessageBox.Show($"{UpdateMsge} : "+ order,"Order status", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                string temp = PrintCompletedMsg.Substring(2).Replace(".txt", "");
+               var msg  =  MessageBox.Show($"{temp} : "+ order,"Order status", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
              
                 if(msg == DialogResult.Yes)
                 {
-                    UpdateOrderStatus(order);
+                    UpdateOrderStatus(order, PrintCompletedMsg);
                     Close();
                 }
                 else
@@ -168,10 +181,10 @@ namespace Laharika_File_Management
 
         }
 
-        private static void UpdateOrderStatus(string Order)
+        private static void UpdateOrderStatus(string Order,string Status)
         {
-            string SourcePath = Path.Combine(OrderDetailsPath,Order + "$A_Copied.txt");
-            string DestPath = Path.Combine(OrderDetailsPath,Order + "$A_Print Completed.txt");
+            string SourcePath = Path.Combine(OrderDetailsPath,Order + Filter + ".txt");
+            string DestPath = Path.Combine(OrderDetailsPath,Order + Status + ".txt");
             File.Move(SourcePath, DestPath);
         }
 
@@ -226,6 +239,7 @@ namespace Laharika_File_Management
                 {
                     File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
                 }
+            UpdateOrderStatus(order,PrintingMsg);
         }
         private void Search_Click(object sender, EventArgs e)
         {
