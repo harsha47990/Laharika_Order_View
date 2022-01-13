@@ -37,7 +37,6 @@ namespace Laharika_File_Management
             OrderFilesPath = ConfigurationManager.AppSettings["OrderFilesPath"].ToString();
             TodayFolderPathLocal = ConfigurationManager.AppSettings["TodayFolderPathLocal"].ToString();
         }
-
         private void CustomMsgBox(string msg)
         {
             Form frm = new Form();
@@ -75,7 +74,6 @@ namespace Laharika_File_Management
                 Log("Error in ReadOrders() method " +ex.Message);
             }
         }
-
         private void ReadOrders()
         {
             gridviewdata.Clear();
@@ -87,7 +85,7 @@ namespace Laharika_File_Management
             {
                 comments = "";
                 order = Path.GetFileName(file).Split('$')[0];
-                status = Path.GetFileNameWithoutExtension(file).Split('$')[1].Substring(2);
+                status = Path.GetFileNameWithoutExtension(file).Split('$')[1].Substring(1);
                 string[] data = File.ReadAllLines(file);
                 if (data.Length >= 3)
                 {
