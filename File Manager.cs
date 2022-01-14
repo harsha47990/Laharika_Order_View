@@ -184,6 +184,10 @@ namespace Laharika_File_Management
         private static void UpdateOrderStatus(string Order,string Status)
         {
             string SourcePath = Path.Combine(OrderDetailsPath,Order + Filter + ".txt");
+            if(!File.Exists(SourcePath))
+            {
+                SourcePath = Path.Combine(OrderDetailsPath, Order + PrintingMsg + ".txt");
+            }
             string DestPath = Path.Combine(OrderDetailsPath,Order + Status + ".txt");
             File.Move(SourcePath, DestPath);
         }
@@ -214,7 +218,7 @@ namespace Laharika_File_Management
                 {
                     Close();
                     CopyOrder(order);
-                    MessageBox.Show(order + " Copied", "Order status", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                    MessageBox.Show(order + " Copied Successful", "Order status", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }

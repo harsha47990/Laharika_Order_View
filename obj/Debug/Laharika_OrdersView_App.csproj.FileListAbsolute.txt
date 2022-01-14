@@ -17,3 +17,4 @@ D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_OrdersView_App.csproj.
 D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_OrdersView_App.csproj.CoreCompileInputs.cache
 D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_File_Management.exe
 D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_File_Management.pdb
+D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_OrdersView_App.csproj.AssemblyReference.cache
