@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -16,10 +17,12 @@ namespace Laharika_File_Management
     public partial class Form1 : Form
     {
         private static string orderid,SearchType;
-        private static string OrderDetailsPath, Filter, AllowAppClosing, PrintingMsg, 
-                                PrintCompletedMsg, copyOnEnter, OrderFilesPath, TodayFolderPathLocal;
+        private static string OrderDetailsPath, Filter, AllowAppClosing, RowEnterPress, 
+                                RowDeletePress, copyOnEnter, OrderFilesPath, TodayFolderPathLocal;
         private static bool Iscommentable = true, PopUpNotification;
+        private static int StatusReadLower, StatusReadUpper;
         public static DataTable gridviewdata = new DataTable();
+        private static Hashtable OrderStatusCode = new Hashtable();
         public Form1()
         {
             ReadConfigurations();
@@ -35,13 +38,25 @@ namespace Laharika_File_Management
             PopUpNotification = Convert.ToBoolean(ConfigurationManager.AppSettings["PopUpNotification"]);
             Filter = ConfigurationManager.AppSettings["Filter"].ToString();
             AllowAppClosing = ConfigurationManager.AppSettings["AllowAppClosing"];
-            PrintingMsg = ConfigurationManager.AppSettings["PrintingMsg"];
-            PrintCompletedMsg = ConfigurationManager.AppSettings["PrintCompletedMsg"];
+            RowEnterPress = ConfigurationManager.AppSettings["RowEnterPress"];
+            RowDeletePress = ConfigurationManager.AppSettings["RowDeletePress"];
             copyOnEnter = ConfigurationManager.AppSettings["CopyOnEnter"].ToString();
             OrderFilesPath = ConfigurationManager.AppSettings["OrderFilesPath"];
             TodayFolderPathLocal = ConfigurationManager.AppSettings["TodayFolderPathLocal"];
             SearchType = ConfigurationManager.AppSettings["SearchType"];
-           // Control.CheckForIllegalCrossThreadCalls = false;
+            var lines = File.ReadAllLines("OrderCodes.txt");
+            foreach(var line in lines)
+            {
+                OrderStatusCode.Add(line.Split(':')[0].Trim().ToString(),line.Split(':')[1]);
+            }
+            StatusReadLower = Convert.ToInt32(OrderStatusCode[Filter]);
+            StatusReadUpper = Convert.ToInt32(OrderStatusCode[RowDeletePress]);
+            if(Convert.ToBoolean(ConfigurationManager.AppSettings["CreateTodayFolder"]))
+            {
+                TodayFolderPathLocal = Path.Combine(TodayFolderPathLocal, DateTime.Now.ToString("dd-MM-yyyy"));
+                Directory.CreateDirectory(TodayFolderPathLocal);
+            }
+            // Control.CheckForIllegalCrossThreadCalls = false;
             ///fileSystemWatcher1.Path = OrderDetailsPath;
         }
         private void CustomMsgBox(string msg)
@@ -90,7 +105,7 @@ namespace Laharika_File_Management
 
             foreach (var file in files)
             {
-                if (Path.GetFileNameWithoutExtension(file).Contains(Filter) || Path.GetFileNameWithoutExtension(file).Contains(PrintingMsg))
+                if (ValidateFileOrderStatus(Path.GetFileNameWithoutExtension(file)))
                 {
                     comments = "";
                     order = Path.GetFileName(file).Split('$')[0];
@@ -118,10 +133,19 @@ namespace Laharika_File_Management
             dataGridView1.Update();
             GC.Collect();
         }
-
+        private bool ValidateFileOrderStatus(string FileName)
+        {
+            string status = "$"+FileName.Split('$')[1];
+            int val = Convert.ToInt32(OrderStatusCode[status]);
+            if(val >= StatusReadLower || val < StatusReadUpper)
+            {
+                return true;
+            }
+            return false;
+        }
         private void fileSystemWatcher1_Changed(object sender, System.IO.FileSystemEventArgs e)
         {
-
+          //   MessageBox.Show(e.Name);
         }
 
         private void fileSystemWatcher1_Created(object sender, FileSystemEventArgs e)
@@ -164,13 +188,14 @@ namespace Laharika_File_Management
              foreach(var row in rows)
             {
                 string order = gridviewdata.Rows[e.Row.Index]["Order ID"].ToString();
-                string temp = PrintCompletedMsg.Substring(2).Replace(".txt", "");
+                string temp = RowDeletePress.Substring(2).Replace(".txt", "");
                var msg  =  MessageBox.Show($"{temp} : "+ order,"Order status", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
-             
-                if(msg == DialogResult.Yes)
+
+                if (msg == DialogResult.Yes)
                 {
-                    UpdateOrderStatus(order, PrintCompletedMsg);
-                    Close();
+                    if (UpdateOrderStatus(order, RowDeletePress))
+                    {  Close();  }
+                    else { e.Cancel = true; }
                 }
                 else
                 {
@@ -181,15 +206,40 @@ namespace Laharika_File_Management
 
         }
 
-        private static void UpdateOrderStatus(string Order,string Status)
+        private void fileSystemWatcher1_Renamed(object sender, RenamedEventArgs e)
+        {
+            if (Path.GetFileNameWithoutExtension(e.Name).StartsWith(SearchType))
+            {
+                string name = Path.GetFileNameWithoutExtension(e.Name);
+                string order = name.Split('$')[0];
+                string status = "$" + name.Split('$')[1];
+                int val = Convert.ToInt32(OrderStatusCode[status]);
+                if (val >= StatusReadLower || val < StatusReadUpper)
+                {
+                   // MessageBox.Show(status.Replace("$_", ""), "Order status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    CustomMsgBox(order + "\n status Updated : " + status.Replace("$_", ""));
+                    return;
+                }
+            }
+
+             
+        }
+
+        private static bool UpdateOrderStatus(string Order,string Status)
         {
             string SourcePath = Path.Combine(OrderDetailsPath,Order + Filter + ".txt");
             if(!File.Exists(SourcePath))
             {
-                SourcePath = Path.Combine(OrderDetailsPath, Order + PrintingMsg + ".txt");
+                SourcePath = Path.Combine(OrderDetailsPath, Order + RowEnterPress + ".txt");
+            }
+            if (!File.Exists(SourcePath))
+            {
+                MessageBox.Show("Order Can't be Updated as " + RowDeletePress.Replace("$_", "") + " before " + RowEnterPress.Replace("$_", ""));
+                return false;
             }
             string DestPath = Path.Combine(OrderDetailsPath,Order + Status + ".txt");
             File.Move(SourcePath, DestPath);
+            return true;
         }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -219,6 +269,7 @@ namespace Laharika_File_Management
                     Close();
                     CopyOrder(order);
                     MessageBox.Show(order + " Copied Successful", "Order status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ReadOrders();
                 }
             }
         }
@@ -243,7 +294,7 @@ namespace Laharika_File_Management
                 {
                     File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
                 }
-            UpdateOrderStatus(order,PrintingMsg);
+            UpdateOrderStatus(order,RowEnterPress);
         }
         private void Search_Click(object sender, EventArgs e)
         {
