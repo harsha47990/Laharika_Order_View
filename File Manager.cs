@@ -194,9 +194,8 @@ namespace Laharika_File_Management
 
                 if (msg == DialogResult.Yes)
                 {
-                    if (UpdateOrderStatus(order, RowDeletePress))
-                    {  Close();  }
-                    else { e.Cancel = true; }
+                    if (!UpdateOrderStatus(order, RowDeletePress))
+                    {  e.Cancel = true; }
                 }
                 else
                 {
@@ -267,7 +266,7 @@ namespace Laharika_File_Management
 
                 if (msg == DialogResult.Yes)
                 {
-                    Close();
+                    //Close();
                     CopyOrder(order);
                     MessageBox.Show(order + " Copied Successful", "Order status", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ReadOrders();

@@ -73,7 +73,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="File Manager.cs" />
+    <Compile Include="File Manager.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="File Manager.Designer.cs">
       <DependentUpon>File Manager.cs</DependentUpon>
     </Compile>
