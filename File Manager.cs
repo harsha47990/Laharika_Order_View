@@ -51,16 +51,21 @@ namespace Laharika_File_Management
             }
             StatusReadLower = Convert.ToInt32(OrderStatusCode[Filter]);
             StatusReadUpper = Convert.ToInt32(OrderStatusCode[RowDeletePress]);
-            if(Convert.ToBoolean(ConfigurationManager.AppSettings["CreateTodayFolder"]))
+            if (Convert.ToBoolean(ConfigurationManager.AppSettings["CreateTodayFolder"]))
             {
                 TodayFolderPathLocal = Path.Combine(TodayFolderPathLocal, DateTime.Now.ToString("dd-MM-yyyy"));
-                Directory.CreateDirectory(TodayFolderPathLocal);
+                if (!Directory.Exists(TodayFolderPathLocal)) 
+                { Directory.CreateDirectory(TodayFolderPathLocal); }
             }
             // Control.CheckForIllegalCrossThreadCalls = false;
             ///fileSystemWatcher1.Path = OrderDetailsPath;
         }
         private void CustomMsgBox(string msg)
         {
+            if(!PopUpNotification)
+            {
+                return;
+            }
             Form frm = new Form();
             frm.Text = "Message";
             Label lb = new Label();
@@ -164,10 +169,6 @@ namespace Laharika_File_Management
                 catch { }
             }
 
-            if(!PopUpNotification)
-            {
-                return;
-            }
             if (Path.GetFileNameWithoutExtension(e.Name).StartsWith(SearchType))
             {
                 if (Path.GetFileNameWithoutExtension(e.Name).Contains(Filter))
