@@ -28,9 +28,7 @@ namespace Laharika_File_Management
             ReadConfigurations();
           //  InitializeWatcher();
             InitializeComponent();
-          
         }
-
 
         private void ReadConfigurations()
         {
