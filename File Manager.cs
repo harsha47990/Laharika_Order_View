@@ -258,7 +258,7 @@ namespace Laharika_File_Management
 
         private void dataGridView1_KeyPress(object sender, KeyEventArgs e)
         {
-            if (e.KeyData == Keys.Enter)
+            if (e.KeyData == Keys.Enter && Convert.ToBoolean(copyOnEnter))
             {
                 DataGridViewRow row = dataGridView1.SelectedRows[0];
                 string order = row.Cells[0].Value.ToString();
