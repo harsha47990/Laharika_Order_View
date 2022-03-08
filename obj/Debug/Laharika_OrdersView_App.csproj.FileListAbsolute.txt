@@ -18,3 +18,8 @@ D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_OrdersView_App.csproj.
 D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_File_Management.exe
 D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_File_Management.pdb
 D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_OrdersView_App.csproj.AssemblyReference.cache
+D:\others\Laharika\Laharika_Order_View\bin\Debug\OrderCodes.txt
+D:\others\Laharika\Laharika_Order_View\bin\Debug\Laharika_File_Management.exe.manifest
+D:\others\Laharika\Laharika_Order_View\bin\Debug\Laharika_File_Management.application
+D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_File_Management.exe.manifest
+D:\others\Laharika\Laharika_Order_View\obj\Debug\Laharika_File_Management.application

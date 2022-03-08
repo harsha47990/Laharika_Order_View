@@ -142,7 +142,7 @@ namespace Laharika_File_Management
         {
             string status = "$"+FileName.Split('$')[1];
             int val = Convert.ToInt32(OrderStatusCode[status]);
-            if(val >= StatusReadLower || val < StatusReadUpper)
+            if(val >= StatusReadLower && val < StatusReadUpper)
             {
                 return true;
             }
