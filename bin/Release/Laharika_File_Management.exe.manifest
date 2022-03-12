@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Laharika_File_Management.exe" size="102336">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Laharika_File_Management.exe" size="101824">
       <assemblyIdentity name="Laharika_File_Management" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>LrlTgXi3N5xGYoZM/GNBR+1laNrMR/nJvJSzLh3QJyM=</dsig:DigestValue>
+        <dsig:DigestValue>/KF33KLZRuNIm5qdeaTdVQ6jB9OYDakxFLlqmF8JC2k=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -70,15 +70,6 @@
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
       <dsig:DigestValue>bW5S1kLIUYK8bmY8YCMkjoECb/FkuYBocR62qj36LK4=</dsig:DigestValue>
-    </hash>
-  </file>
-  <file name="OrderCodes.txt" size="95">
-    <hash>
-      <dsig:Transforms>
-        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
-      </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>4wkb6ifmpipKY+LeZlbvCLwHcE8nJZV5EJNZcvMsqrg=</dsig:DigestValue>
     </hash>
   </file>
 </asmv1:assembly>

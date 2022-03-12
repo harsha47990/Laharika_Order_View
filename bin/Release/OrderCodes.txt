@@ -1,6 +1,0 @@
-$_Copied : 1
-$_Cropping : 2
-$_Printing : 3
-$_Binding : 4
-$_Completed : 5
-$_Delivered : 6

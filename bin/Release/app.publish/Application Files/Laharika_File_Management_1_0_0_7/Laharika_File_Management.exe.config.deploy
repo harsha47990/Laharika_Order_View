@@ -28,6 +28,7 @@
 		<add key="EmailId" value="alert.laharika@gmail.com"/>
 		<add key="Password" value="harsha@123"/>
 		<add key="ShopClosingTime24Hr" value="22"/>
+		<add key="OrderCodes" value="$_Copied,$_Cropping,$_Printing,$_Binding,$_Completed,$_Delivered"/>
 		<add key="ClientSettingsProvider.ServiceUri" value="" />
 	</appSettings>
 	<system.web>

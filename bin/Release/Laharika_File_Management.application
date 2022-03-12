@@ -7,14 +7,14 @@
     <framework targetVersion="4.7.2" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="Laharika_File_Management.exe.manifest" size="4425">
+    <dependentAssembly dependencyType="install" codebase="Laharika_File_Management.exe.manifest" size="4035">
       <assemblyIdentity name="Laharika_File_Management.exe" version="1.0.0.7" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>ND+uzTL9tDgy2gxFAMyWym4two0ifsr27xJ1t7+NORY=</dsig:DigestValue>
+        <dsig:DigestValue>jwEtn02vUmj0+pRNsnvpCD9/ZoJLU2qOUnoLzKtHD2k=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

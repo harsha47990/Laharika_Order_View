@@ -43,10 +43,12 @@ namespace Laharika_File_Management
             OrderFilesPath = ConfigurationManager.AppSettings["OrderFilesPath"];
             TodayFolderPathLocal = ConfigurationManager.AppSettings["TodayFolderPathLocal"];
             SearchType = ConfigurationManager.AppSettings["SearchType"];
-            var lines = File.ReadAllLines("OrderCodes.txt");
+            var lines = ConfigurationManager.AppSettings["OrderCodes"].Split(',');
+            int i = 1;
             foreach(var line in lines)
             {
-                OrderStatusCode.Add(line.Split(':')[0].Trim().ToString(),line.Split(':')[1]);
+                OrderStatusCode.Add(line.Split(':')[0].Trim().ToString(),i);
+                i++;
             }
             StatusReadLower = Convert.ToInt32(OrderStatusCode[Filter]);
             StatusReadUpper = Convert.ToInt32(OrderStatusCode[RowDeletePress]);
