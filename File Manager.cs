@@ -7,6 +7,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +83,9 @@ namespace Laharika_File_Management
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            fileSystemWatcher1.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            try
+            {
+                fileSystemWatcher1.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             fileSystemWatcher1.Path = OrderDetailsPath;
            
             gridviewdata.Columns.Add("Order ID");
@@ -90,59 +93,82 @@ namespace Laharika_File_Management
             gridviewdata.Columns.Add("Files Count");
             gridviewdata.Columns.Add("Status");
             gridviewdata.Columns.Add("Comments");
-            try
-            {
-                ReadOrders();
+           
+            ReadOrders();
             }
             catch(Exception ex)
             {
-                Log("Error in ReadOrders() method " +ex.Message);
+                string msg = "Error in Form1_Load method " + ex.Message;
+                Log(msg);
+                Email(msg);
             }
         }
         private void ReadOrders()
         {
-            gridviewdata.Clear();
-            string[] files = Directory.GetFiles(OrderDetailsPath, $"{SearchType}*", SearchOption.AllDirectories);
-              
-            string order, folder="", count="", status="", comments="";
-
-            foreach (var file in files)
+            try
             {
-                if (ValidateFileOrderStatus(Path.GetFileNameWithoutExtension(file)))
+                gridviewdata.Clear();
+                var files = Directory.GetFiles(OrderDetailsPath, $"{SearchType}*", SearchOption.AllDirectories).OrderByDescending(d => new FileInfo(d).CreationTime);
+
+                Log("number of files in the order details path is " + files.Count());
+                string order, folder = "", count = "", status = "", comments = "";
+
+                foreach (var file in files)
                 {
-                    comments = "";
-                    order = Path.GetFileName(file).Split('$')[0];
-                    status = Path.GetFileNameWithoutExtension(file).Split('$')[1].Substring(1);
-                    string[] data = File.ReadAllLines(file);
-                    if (data.Length >= 3)
+                    if (ValidateFileOrderStatus(Path.GetFileNameWithoutExtension(file)))
                     {
-                        folder = data[0].Split(':')[1];
-                        count = data[1].Split(':')[1];
-                        if (data.Length > 3)
+                        comments = "";
+                        order = Path.GetFileName(file).Split('$')[0];
+                        status = Path.GetFileNameWithoutExtension(file).Split('$')[1].Substring(1);
+                        string[] data = File.ReadAllLines(file);
+                        if (data.Length >= 3)
                         {
-                            comments = data[3].Split(':')[1];
+                            folder = data[0].Split(':')[1];
+                            count = data[1].Split(':')[1];
+                            if (data.Length > 3)
+                            {
+                                comments = data[3].Split(':')[1];
+                            }
                         }
-                    }
 
-                    gridviewdata.Rows.Add(order, folder, count, status, comments);
+                        gridviewdata.Rows.Add(order, folder, count, status, comments);
+                    }
                 }
+                if (gridviewdata.Rows.Count > 0)
+                {
+                    orderid = gridviewdata.Rows[0][0].ToString();
+                }
+                dataGridView1.DataSource = gridviewdata;
+                dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dataGridView1.Update();
+                GC.Collect();
             }
-            if (gridviewdata.Rows.Count > 0)
+            catch (Exception ex)
             {
-                orderid = gridviewdata.Rows[0][0].ToString();
+                string msg = "Error in ReadOrders() method " + ex.Message;
+                Log(msg);
+                Email(msg);
             }
-            dataGridView1.DataSource = gridviewdata;
-            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridView1.Update();
-            GC.Collect();
         }
         private bool ValidateFileOrderStatus(string FileName)
         {
-            string status = "$"+FileName.Split('$')[1];
-            int val = Convert.ToInt32(OrderStatusCode[status]);
-            if(val >= StatusReadLower && val < StatusReadUpper)
+            try
             {
-                return true;
+                //Log("validating file name : " + FileName);
+                string status = "$" + FileName.Split('$')[1];
+                int val = Convert.ToInt32(OrderStatusCode[status]);
+              //  Log("Status Read Lower Limit : " + StatusReadLower + " , upper limit : " + StatusReadUpper);
+               // Log("order code for validated file : " + val);
+                if (val >= StatusReadLower && val < StatusReadUpper)
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = "Error in ReadOrders() method " + ex.Message;
+                Log(msg);
+                Email(msg);
             }
             return false;
         }
@@ -192,6 +218,7 @@ namespace Laharika_File_Management
 
                 if (msg == DialogResult.Yes)
                 {
+                    MoveFolderOnDeleteRow(order);
                     if (!UpdateOrderStatus(order, RowDeletePress))
                     {  e.Cancel = true; }
                 }
@@ -204,6 +231,95 @@ namespace Laharika_File_Management
 
         }
 
+        private static void MoveFolderOnDeleteRow(string Source)
+        {
+            if(Convert.ToBoolean(ConfigurationManager.AppSettings["MoveOnDelete"]))
+            {
+                CopyFilesRecursively(Path.Combine(TodayFolderPathLocal, Source),ConfigurationManager.AppSettings["MoveOnDeletePath"]);
+                VerfiyAndRemove(Path.Combine(TodayFolderPathLocal, Source), ConfigurationManager.AppSettings["MoveOnDeletePath"]);
+            }
+        }
+        private static void VerfiyAndRemove(string source, string destination)
+        {
+            try
+            {
+                if (DirSize(destination) == DirSize(source))
+                {
+                    try
+                    {
+                        Directory.Delete(source, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log(ex.Message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = "Error in Verify And Remove method, message: " + ex.Message + "\n stack trace : " + ex.StackTrace;
+                Log(msg);
+                Email(msg);
+            }
+
+        }
+
+        public static long DirSize(string path)
+        {
+            try
+            {
+                DirectoryInfo d = new DirectoryInfo(path);
+                long size = 0;
+                // Add file sizes.
+                FileInfo[] fis = d.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    size += fi.Length;
+                }
+                // Add subdirectory sizes.
+                DirectoryInfo[] dis = d.GetDirectories();
+                foreach (DirectoryInfo di in dis)
+                {
+                    size += DirSize(di.FullName);
+                }
+                return size;
+            }
+            catch (Exception ex)
+            {
+                string msg = "Error in DirSize method, message: " + ex.Message + "\n stack trace : " + ex.StackTrace;
+                Log(msg);
+                Email(msg);
+            }
+            return 0;
+        }
+
+        private static void CopyFilesRecursively(string sourcePath, string targetPath)
+        {
+            try
+            {
+                var FilesCount = 0;
+                var FileNames = "";
+                targetPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
+                Directory.CreateDirectory(targetPath);
+                foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+                {
+                    Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+                }
+
+                foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+                {
+                    FilesCount++;
+                    FileNames += "," + Path.GetFileName(newPath);
+                    File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = "Error in CopyFilesRecursively method, message: " + ex.Message + "\n stack trace : " + ex.StackTrace;
+                Log(msg);
+                Email(msg);
+            }
+        }
         private void fileSystemWatcher1_Renamed(object sender, RenamedEventArgs e)
         {
             if (Path.GetFileNameWithoutExtension(e.Name).StartsWith(SearchType))
@@ -242,15 +358,24 @@ namespace Laharika_File_Management
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            DataGridViewRow row = dataGridView1.SelectedRows[0];
-            orderid = row.Cells[0].Value.ToString();
-            if(row.Cells[4].Value.ToString().Length > 2)
+            try
             {
-                Iscommentable = false;
+                DataGridViewRow row = dataGridView1.SelectedRows[0];
+                orderid = row.Cells[0].Value.ToString();
+                if (row.Cells[4].Value.ToString().Length > 2)
+                {
+                    Iscommentable = false;
+                }
+                else
+                {
+                    Iscommentable = true;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Iscommentable = true;
+                string msg = "Error in ReadOrders() method " + ex.Message;
+                Log(msg);
+                Email(msg);
             }
         }
 
@@ -280,8 +405,10 @@ namespace Laharika_File_Management
         private static void CopyOrder(string order)
         {
             ///////////////////
-            string sourcePath = Path.Combine(OrderFilesPath, order);
-            string targetPath = Path.Combine(TodayFolderPathLocal, order);
+            try
+            {
+                string sourcePath = Path.Combine(OrderFilesPath, order);
+                string targetPath = Path.Combine(TodayFolderPathLocal, order);
                 Directory.CreateDirectory(targetPath);
                 foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
                 {
@@ -292,7 +419,14 @@ namespace Laharika_File_Management
                 {
                     File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
                 }
-            UpdateOrderStatus(order,RowEnterPress);
+                UpdateOrderStatus(order, RowEnterPress);
+            }
+            catch (Exception ex)
+            {
+                string msg = "Error in ReadOrders() method " + ex.Message;
+                Log(msg);
+                Email(msg);
+            }
         }
         private void Search_Click(object sender, EventArgs e)
         {
@@ -325,7 +459,8 @@ namespace Laharika_File_Management
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (AllowAppClosing == "True")
+            int closetime = Convert.ToInt32(ConfigurationManager.AppSettings["ShopClosingTime24Hr"]);
+            if (Convert.ToBoolean(AllowAppClosing) || DateTime.Now.Hour == closetime)
             {
                 e.Cancel = false;
             }
@@ -335,11 +470,45 @@ namespace Laharika_File_Management
             }
         }
 
-        private void Log(string Message)
+        private static void Log(string Message)
         {
-            string path = ConfigurationManager.AppSettings["LogPath"];
+            string path = ConfigurationManager.AppSettings["LogPath"] + "\\" + DateTime.Now.ToString("dd_MM_yyyy") + "_OrderViewApp_Log.txt";
             File.AppendAllText(path, DateTime.Now + " : " + Message + "\n");
-                
+        }     
+
+        private static void Email(string msg)
+        {
+            if(!Convert.ToBoolean(ConfigurationManager.AppSettings["SendEmailAlert"]))
+            {
+                Log("Email Alert Disabled, unable to send email");
+                return;
+            }
+            string to = ConfigurationManager.AppSettings["AlertToEmail"]; //To address    
+            string from = ConfigurationManager.AppSettings["EmailId"]; //From address
+            string pass = ConfigurationManager.AppSettings["Password"];
+            MailMessage message = new MailMessage(from, to);
+
+            string mailbody = msg;
+            message.Subject = "Error in Laharika Service Application";
+            message.Body = mailbody;
+            message.BodyEncoding = Encoding.UTF8;
+            message.IsBodyHtml = true;
+            SmtpClient client = new SmtpClient("smtp.gmail.com", 587); //Gmail smtp    
+            System.Net.NetworkCredential basicCredential1 = new
+            System.Net.NetworkCredential(from, pass);
+            client.EnableSsl = true;
+            client.UseDefaultCredentials = false;
+            client.Credentials = basicCredential1;
+            try
+            {
+                client.Send(message);
+            }
+
+            catch (Exception ex)
+            {
+                Log("Error Sending Email : " + ex.Message);
+                //throw ex;
+            }
         }
     }
 }
