@@ -11,3 +11,4 @@ D:\others\Laharika\Laharika_Order_View\obj\Release\Laharika_File_Management.exe.
 D:\others\Laharika\Laharika_Order_View\obj\Release\Laharika_File_Management.application
 D:\others\Laharika\Laharika_Order_View\obj\Release\Laharika_File_Management.exe
 D:\others\Laharika\Laharika_Order_View\obj\Release\Laharika_File_Management.pdb
+D:\others\Laharika\Laharika_Order_View\obj\Release\Laharika_OrdersView_App.csproj.AssemblyReference.cache
