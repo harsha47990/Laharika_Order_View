@@ -472,7 +472,7 @@ namespace Laharika_File_Management
 
         private static void Log(string Message)
         {
-            string path = ConfigurationManager.AppSettings["LogPath"] + "\\" + DateTime.Now.ToString("dd_MM_yyyy") + "_OrderViewApp_Log.txt";
+            string path = Path.GetDirectoryName(Application.ExecutablePath) + "\\" + DateTime.Now.ToString("dd_MM_yyyy") + "_OrderViewApp_Log.txt";
             File.AppendAllText(path, DateTime.Now + " : " + Message + "\n");
         }     
 
