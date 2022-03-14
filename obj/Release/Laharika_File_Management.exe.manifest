@@ -50,17 +50,17 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>/KF33KLZRuNIm5qdeaTdVQ6jB9OYDakxFLlqmF8JC2k=</dsig:DigestValue>
+        <dsig:DigestValue>aj6+2QeqyEvs016/qQcKMNdlBvhucLpeQWY+kp97Yhw=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
-  <file name="Laharika_File_Management.exe.config" size="2621">
+  <file name="Laharika_File_Management.exe.config" size="2622">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>rcCz632b4aRfHzJwBdrhD0PIh24GqT6U2kF9JO2P+0Y=</dsig:DigestValue>
+      <dsig:DigestValue>kKfQZPfy0WDZyRO+n3xqmnzktio0AOv7WNN9IzcKZxE=</dsig:DigestValue>
     </hash>
   </file>
   <file name="logo-png.ico" size="37918">

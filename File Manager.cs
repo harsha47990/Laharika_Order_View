@@ -462,7 +462,7 @@ namespace Laharika_File_Management
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             int closetime = Convert.ToInt32(ConfigurationManager.AppSettings["ShopClosingTime24Hr"]);
-            if (Convert.ToBoolean(AllowAppClosing) || DateTime.Now.Hour == closetime)
+            if (Convert.ToBoolean(AllowAppClosing) || DateTime.Now.Hour >= closetime)
             {
                 e.Cancel = false;
             }
